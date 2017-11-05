@@ -97,7 +97,7 @@ public class SpeakerIdentificationServiceImpl implements SpeakerIdentificationSe
     }
 
     @Override
-    public EnrollmentOperation enrollIdentity(InputStream pAudioStream, UUID pSpeakerId)
+    public EnrollmentOperation enrollSpeaker(InputStream pAudioStream, UUID pSpeakerId)
     {
         OperationLocation operationLocation = null;
         try

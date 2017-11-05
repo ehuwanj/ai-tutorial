@@ -20,7 +20,7 @@ public interface SpeakerIdentificationService extends SpeakerService
      * @param pSpeakerProfileId
      * @return EnrollmentOperation
      */
-    EnrollmentOperation enrollIdentity(InputStream pAudioStream, UUID pSpeakerProfileId);
+    EnrollmentOperation enrollSpeaker(InputStream pAudioStream, UUID pSpeakerProfileId);
 
     /**
      * Reset all enrolled voices for specified speaker profile. 

@@ -35,11 +35,11 @@ public class SpeakerIdentificationRestControlller
         return _identificationService.getSpeakerProfile(UUID.fromString(pProfileId));
     }
 
-    @PutMapping("/enroll/identity/{profileId}")
-    public EnrollmentOperation enrollIdentity(@PathVariable(name="profileId") String pSpeakerProfileId,
+    @PutMapping("/enroll/speaker/{profileId}")
+    public EnrollmentOperation enrollSpeaker(@PathVariable(name="profileId") String pSpeakerProfileId,
                                    @RequestBody InputStream pAudioStream)
     {
-        return _identificationService.enrollIdentity(pAudioStream, UUID.fromString(pSpeakerProfileId));
+        return _identificationService.enrollSpeaker(pAudioStream, UUID.fromString(pSpeakerProfileId));
     }
 
     @PutMapping("/identify")
