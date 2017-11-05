@@ -1,7 +1,5 @@
 package com.ericsson.ai.speaker.service;
 
-import java.util.UUID;
-
 import com.ericsson.ai.speaker.domain.RequestProfile;
 import com.ericsson.ai.speaker.domain.SpeakerProfile;
 
@@ -25,7 +23,7 @@ public interface SpeakerService
      *
      * @param pProfileId
      */
-    void deleteSpeakerProfile(UUID pProfileId);
+    void deleteSpeakerProfile(String pProfileId);
 
     /**
      * Return the speaker profile with specified profile ID.
@@ -33,5 +31,5 @@ public interface SpeakerService
      * @param pProfileId
      * @return SpeakerProfile
      */
-    SpeakerProfile getSpeakerProfile(UUID pProfileId);
+    SpeakerProfile getSpeakerProfile(String pProfileId);
 }

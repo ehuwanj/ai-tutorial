@@ -32,7 +32,7 @@ public class SpeakerIdentificationRestControlller
     @GetMapping("/speaker/{profileId}")
     public SpeakerProfile getSpeakerName(@PathVariable(name="profileId") String pProfileId)
     {
-        return _identificationService.getSpeakerProfile(UUID.fromString(pProfileId));
+        return _identificationService.getSpeakerProfile(pProfileId);
     }
 
     @PutMapping("/enroll/speaker/{profileId}")

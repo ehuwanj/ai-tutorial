@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -36,6 +37,8 @@ import com.microsoft.cognitive.speakerrecognition.contract.identification.Operat
 @Service("SpeakerIdentificationService")
 public class SpeakerIdentificationServiceImpl implements SpeakerIdentificationService
 {
+    private static Logger _logger = Logger.getLogger(SpeakerIdentificationServiceImpl.class.getName());
+
     private SpeakerProfileDao _speakerProfileDao;
     private SpeakerIdentificationClient _speakerIdentificationClient;
     private List<UUID> allProfileIds;
@@ -66,21 +69,19 @@ public class SpeakerIdentificationServiceImpl implements SpeakerIdentificationSe
         {
             e.printStackTrace();
         }
-        SpeakerProfile speakerProfile = null;
-        if(profileResponse != null)
-        {
-             speakerProfile = new SpeakerProfile(profileResponse.identificationProfileId, pRequestProfile.getSpeakerName());
-            _speakerProfileDao.save(speakerProfile);
-        }
+        UUID profileId = (profileResponse != null) ? profileResponse.identificationProfileId : UUID.randomUUID();
+        _logger.info(profileId.toString());
+        SpeakerProfile speakerProfile = new SpeakerProfile(profileId.toString(), pRequestProfile.getSpeakerName());
+        _speakerProfileDao.save(speakerProfile);
         return speakerProfile;
     }
 
     @Override
-    public void deleteSpeakerProfile(UUID pProfileId) 
+    public void deleteSpeakerProfile(String pProfileId) 
     {
         try
         {
-            _speakerIdentificationClient.deleteProfile(pProfileId);
+            _speakerIdentificationClient.deleteProfile(UUID.fromString(pProfileId));
         } catch (DeleteProfileException | IOException e)
         {
             e.printStackTrace();
@@ -91,7 +92,7 @@ public class SpeakerIdentificationServiceImpl implements SpeakerIdentificationSe
     }
 
     @Override
-    public SpeakerProfile getSpeakerProfile(UUID pProfileId)
+    public SpeakerProfile getSpeakerProfile(String pProfileId)
     {
         return _speakerProfileDao.getSpeakerProfile(pProfileId);
     }

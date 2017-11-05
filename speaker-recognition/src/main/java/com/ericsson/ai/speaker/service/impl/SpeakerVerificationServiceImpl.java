@@ -3,6 +3,7 @@ package com.ericsson.ai.speaker.service.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 import javax.annotation.Resource;
 
@@ -34,6 +35,8 @@ import com.microsoft.cognitive.speakerrecognition.contract.verification.Verifica
 @Service("SpeakerVerificationService")
 public class SpeakerVerificationServiceImpl implements SpeakerVerificationService
 {
+    private static Logger _logger = Logger.getLogger(SpeakerVerificationServiceImpl.class.getName());
+
     private SpeakerProfileDao _speakerProfileDao;
     private SpeakerVerificationClient _speakerVerificationClient;
     private SpeakerIdentificationService _speakerIdentificationService;
@@ -74,18 +77,18 @@ public class SpeakerVerificationServiceImpl implements SpeakerVerificationServic
         SpeakerProfile speakerProfile = null;
         if(profileResponse != null)
         {
-             speakerProfile = new SpeakerProfile(profileResponse.verificationProfileId, pRequestProfile.getSpeakerName());
+             speakerProfile = new SpeakerProfile(profileResponse.verificationProfileId.toString(), pRequestProfile.getSpeakerName());
             _speakerProfileDao.save(speakerProfile);
         }
         return speakerProfile;
     }
 
     @Override
-    public void deleteSpeakerProfile(UUID pProfileId)
+    public void deleteSpeakerProfile(String pProfileId)
     {
         try
         {
-            _speakerVerificationClient.deleteProfile(pProfileId);
+            _speakerVerificationClient.deleteProfile(UUID.fromString(pProfileId));
         }
         catch (DeleteProfileException | IOException e)
         {
@@ -94,7 +97,7 @@ public class SpeakerVerificationServiceImpl implements SpeakerVerificationServic
     }
 
     @Override
-    public SpeakerProfile getSpeakerProfile(UUID pProfileId)
+    public SpeakerProfile getSpeakerProfile(String pProfileId)
     {
         return _speakerProfileDao.getSpeakerProfile(pProfileId);
     }
@@ -143,7 +146,7 @@ public class SpeakerVerificationServiceImpl implements SpeakerVerificationServic
         }
         else
         {
-            System.err.println("Can not identify the speaker with provided audio stream.");
+            _logger.warning("Can not identify the speaker with provided audio stream.");
         }
         return null;
     }

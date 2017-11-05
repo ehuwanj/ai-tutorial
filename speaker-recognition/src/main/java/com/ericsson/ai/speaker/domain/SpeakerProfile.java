@@ -2,8 +2,10 @@ package com.ericsson.ai.speaker.domain;
 
 import java.util.UUID;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * Domain entity to link speaker name and profile ID.
@@ -11,24 +13,29 @@ import javax.persistence.Id;
  * @author W.Huang
  */
 @Entity
+@Table(name="SPEAKER_PROFILE")
 public class SpeakerProfile
 {
     @Id
-    private UUID _profileId;
+    @Column(name = "UUID")
+    private String _profileId;
+    @Column(name = "name")
     private String _name;
 
-    public SpeakerProfile(UUID pProfileId, String pName)
+    protected SpeakerProfile() {};
+
+    public SpeakerProfile(String pProfileId, String pName)
     {
         _profileId = pProfileId;
         _name = pName;
     }
 
-    public UUID getProfileId()
+    public String getProfileId()
     {
         return _profileId;
     }
 
-    public void setProfileId(UUID pProfileId)
+    public void setProfileId(String pProfileId)
     {
         _profileId = pProfileId;
     }
