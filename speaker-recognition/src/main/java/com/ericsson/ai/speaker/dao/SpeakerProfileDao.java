@@ -1,4 +1,4 @@
-package com.ericsson.ai.speaker.service;
+package com.ericsson.ai.speaker.dao;
 
 import java.util.UUID;
 

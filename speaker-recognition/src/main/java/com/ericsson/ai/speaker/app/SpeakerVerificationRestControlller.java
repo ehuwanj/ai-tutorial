@@ -1,20 +1,35 @@
 package com.ericsson.ai.speaker.app;
 
+import java.io.InputStream;
 import java.util.UUID;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ericsson.ai.speaker.domain.SpeakerProfile;
+import com.ericsson.ai.speaker.service.SpeakerVerificationService;
+import com.microsoft.cognitive.speakerrecognition.contract.verification.Enrollment;
+import com.microsoft.cognitive.speakerrecognition.contract.verification.Verification;
 
 @RestController
 public class SpeakerVerificationRestControlller
 {
-    @RequestMapping("/speakername")
-    public SpeakerProfile getSpeakerName(@RequestParam(value="profileId") String pProfileId)
+    @Autowired
+    private SpeakerVerificationService _verificationService;
+
+    @PutMapping("/enroll/phrase/{profileId}")
+    public Enrollment enrollPhrase(@PathVariable(name="profileId") String pSpeakerProfileId,
+                                   @RequestBody InputStream pAudioStream)
     {
-        UUID profileId = UUID.randomUUID();
-        return new SpeakerProfile(profileId, "ADMX");
+        return _verificationService.enrollPhrase(pAudioStream, UUID.fromString(pSpeakerProfileId));
     }
+
+    @PutMapping("/verify")
+    public Verification verify(@RequestBody InputStream pAudioStream)
+    {
+        return _verificationService.verifySpeaker(pAudioStream);
+    }
+
 }

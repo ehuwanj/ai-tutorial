@@ -68,6 +68,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.springframework.stereotype.Component;
 
 /**
  * A service client class to perform all the verification service calls

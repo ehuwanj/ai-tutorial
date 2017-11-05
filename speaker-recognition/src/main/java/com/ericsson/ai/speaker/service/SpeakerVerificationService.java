@@ -21,7 +21,7 @@ public interface SpeakerVerificationService extends SpeakerService
      * @param pSpeakerId
      * @return Enrollment
      */
-    Enrollment enrollVerification(InputStream pAudioStream, UUID pSpeakerId);
+    Enrollment enrollPhrase(InputStream pAudioStream, UUID pSpeakerId);
 
     /**
      * Reset all verification phrase for specified speaker.

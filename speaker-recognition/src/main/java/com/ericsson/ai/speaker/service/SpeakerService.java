@@ -2,6 +2,7 @@ package com.ericsson.ai.speaker.service;
 
 import java.util.UUID;
 
+import com.ericsson.ai.speaker.domain.RequestProfile;
 import com.ericsson.ai.speaker.domain.SpeakerProfile;
 
 /**
@@ -12,13 +13,12 @@ import com.ericsson.ai.speaker.domain.SpeakerProfile;
 public interface SpeakerService
 {
     /**
-     * Create a speaker profile for specified language
+     * Create a speaker profile for specified language and speaker name
      *
-     * @param pLocale
-     * @param pSpeakerName
-     * @return UserProfile
+     * @param RequestProfile
+     * @return SpeakerProfile
      */
-    SpeakerProfile createSpeakerProfile(String pLocale, String pSpeakerName);
+    SpeakerProfile createSpeakerProfile(RequestProfile pRequestProfile);
 
     /**
      * Delete specified speaker profile.
@@ -28,10 +28,10 @@ public interface SpeakerService
     void deleteSpeakerProfile(UUID pProfileId);
 
     /**
-     * Return the speaker name with specified profile ID.
+     * Return the speaker profile with specified profile ID.
      *
      * @param pProfileId
-     * @return speaker name
+     * @return SpeakerProfile
      */
-    String getSpeakerName(UUID pProfileId);
+    SpeakerProfile getSpeakerProfile(UUID pProfileId);
 }

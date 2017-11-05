@@ -7,11 +7,12 @@ import java.util.UUID;
 import javax.annotation.Resource;
 
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
+import com.ericsson.ai.speaker.dao.SpeakerProfileDao;
+import com.ericsson.ai.speaker.domain.RequestProfile;
 import com.ericsson.ai.speaker.domain.SpeakerProfile;
 import com.ericsson.ai.speaker.service.SpeakerIdentificationService;
-import com.ericsson.ai.speaker.service.SpeakerProfileDao;
 import com.ericsson.ai.speaker.service.SpeakerVerificationService;
 import com.microsoft.cognitive.speakerrecognition.SpeakerVerificationClient;
 import com.microsoft.cognitive.speakerrecognition.contract.CreateProfileException;
@@ -30,7 +31,7 @@ import com.microsoft.cognitive.speakerrecognition.contract.verification.Verifica
  *
  * @author W.Huang
  */
-@Component
+@Service("SpeakerVerificationService")
 public class SpeakerVerificationServiceImpl implements SpeakerVerificationService
 {
     private SpeakerProfileDao _speakerProfileDao;
@@ -59,12 +60,12 @@ public class SpeakerVerificationServiceImpl implements SpeakerVerificationServic
     }
 
     @Override
-    public SpeakerProfile createSpeakerProfile(String pLocale, String pSpeakerName)
+    public SpeakerProfile createSpeakerProfile(RequestProfile pRequestProfile)
     {
         CreateProfileResponse profileResponse = null;
         try
         {
-            profileResponse = _speakerVerificationClient.createProfile(pLocale);
+            profileResponse = _speakerVerificationClient.createProfile(pRequestProfile.getLocale());
         }
         catch (CreateProfileException | IOException e)
         {
@@ -73,7 +74,7 @@ public class SpeakerVerificationServiceImpl implements SpeakerVerificationServic
         SpeakerProfile speakerProfile = null;
         if(profileResponse != null)
         {
-             speakerProfile = new SpeakerProfile(profileResponse.verificationProfileId, pSpeakerName);
+             speakerProfile = new SpeakerProfile(profileResponse.verificationProfileId, pRequestProfile.getSpeakerName());
             _speakerProfileDao.save(speakerProfile);
         }
         return speakerProfile;
@@ -93,13 +94,13 @@ public class SpeakerVerificationServiceImpl implements SpeakerVerificationServic
     }
 
     @Override
-    public String getSpeakerName(UUID pProfileId)
+    public SpeakerProfile getSpeakerProfile(UUID pProfileId)
     {
-        return _speakerProfileDao.getSpeakerProfile(pProfileId).getSpeakerName();
+        return _speakerProfileDao.getSpeakerProfile(pProfileId);
     }
 
     @Override
-    public Enrollment enrollVerification(InputStream pAudioStream, UUID pSpeakerId)
+    public Enrollment enrollPhrase(InputStream pAudioStream, UUID pSpeakerId)
     {
         try
         {

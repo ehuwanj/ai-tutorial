@@ -16,7 +16,16 @@
         <jdbc:script location="classpath:speaker-schema.sql"/>
     </jdbc:embedded-database>
 
-    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
-        <property name="dataSource" ref="embeddedDataSource"></property>  
-    </bean>  
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="embeddedDataSource"/>
+    </bean>
+
+    <bean id="SpeakerIdentificationClient" class="com.microsoft.cognitive.speakerrecognition.SpeakerIdentificationRestClient">
+        <constructor-arg value = "SubscriptionKey"/>
+    </bean>
+
+    <bean id="SpeakerVerificationClient" class="com.microsoft.cognitive.speakerrecognition.SpeakerVerificationRestClient">
+        <constructor-arg value = "SubscriptionKey"/>
+    </bean>
+
 </beans>

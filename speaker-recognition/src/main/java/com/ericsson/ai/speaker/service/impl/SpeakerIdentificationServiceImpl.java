@@ -10,10 +10,12 @@ import java.util.stream.Collectors;
 import javax.annotation.Resource;
 
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
+import com.ericsson.ai.speaker.dao.SpeakerProfileDao;
+import com.ericsson.ai.speaker.domain.RequestProfile;
 import com.ericsson.ai.speaker.domain.SpeakerProfile;
 import com.ericsson.ai.speaker.service.SpeakerIdentificationService;
-import com.ericsson.ai.speaker.service.SpeakerProfileDao;
 import com.microsoft.cognitive.speakerrecognition.SpeakerIdentificationClient;
 import com.microsoft.cognitive.speakerrecognition.contract.CreateProfileException;
 import com.microsoft.cognitive.speakerrecognition.contract.DeleteProfileException;
@@ -31,7 +33,7 @@ import com.microsoft.cognitive.speakerrecognition.contract.identification.Operat
  *
  * @author W.Huang
  */
-@Component
+@Service("SpeakerIdentificationService")
 public class SpeakerIdentificationServiceImpl implements SpeakerIdentificationService
 {
     private SpeakerProfileDao _speakerProfileDao;
@@ -53,12 +55,12 @@ public class SpeakerIdentificationServiceImpl implements SpeakerIdentificationSe
     }
 
     @Override
-    public SpeakerProfile createSpeakerProfile(String pLocale, String pSpeakerName)
+    public SpeakerProfile createSpeakerProfile(RequestProfile pRequestProfile)
     {
         CreateProfileResponse profileResponse = null;
         try
         {
-            profileResponse = _speakerIdentificationClient.createProfile(pLocale);
+            profileResponse = _speakerIdentificationClient.createProfile(pRequestProfile.getLocale());
         }
         catch (CreateProfileException | IOException e)
         {
@@ -67,7 +69,7 @@ public class SpeakerIdentificationServiceImpl implements SpeakerIdentificationSe
         SpeakerProfile speakerProfile = null;
         if(profileResponse != null)
         {
-             speakerProfile = new SpeakerProfile(profileResponse.identificationProfileId, pSpeakerName);
+             speakerProfile = new SpeakerProfile(profileResponse.identificationProfileId, pRequestProfile.getSpeakerName());
             _speakerProfileDao.save(speakerProfile);
         }
         return speakerProfile;
@@ -89,13 +91,13 @@ public class SpeakerIdentificationServiceImpl implements SpeakerIdentificationSe
     }
 
     @Override
-    public String getSpeakerName(UUID pProfileId)
+    public SpeakerProfile getSpeakerProfile(UUID pProfileId)
     {
-        return _speakerProfileDao.getSpeakerProfile(pProfileId).getSpeakerName();
+        return _speakerProfileDao.getSpeakerProfile(pProfileId);
     }
 
     @Override
-    public EnrollmentOperation enrollIdentification(InputStream pAudioStream, UUID pSpeakerId)
+    public EnrollmentOperation enrollIdentity(InputStream pAudioStream, UUID pSpeakerId)
     {
         OperationLocation operationLocation = null;
         try
