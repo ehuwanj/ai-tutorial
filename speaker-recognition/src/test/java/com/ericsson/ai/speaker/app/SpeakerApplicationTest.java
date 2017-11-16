@@ -16,8 +16,11 @@ import org.junit.Test;
 import com.ericsson.ai.speaker.domain.SpeakerProfile;
 import com.ericsson.ai.speaker.service.SpeakerIdentificationService;
 import com.ericsson.ai.speaker.service.impl.SpeakerIdentificationServiceImpl;
+import com.ericsson.ai.speaker.service.impl.SpeakerVerificationServiceImpl;
 import com.microsoft.cognitive.speakerrecognition.SpeakerIdentificationClient;
 import com.microsoft.cognitive.speakerrecognition.SpeakerIdentificationRestClient;
+import com.microsoft.cognitive.speakerrecognition.SpeakerVerificationClient;
+import com.microsoft.cognitive.speakerrecognition.SpeakerVerificationRestClient;
 import com.microsoft.cognitive.speakerrecognition.contract.CreateProfileException;
 import com.microsoft.cognitive.speakerrecognition.contract.DeleteProfileException;
 import com.microsoft.cognitive.speakerrecognition.contract.EnrollmentException;
@@ -28,6 +31,8 @@ import com.microsoft.cognitive.speakerrecognition.contract.identification.Identi
 import com.microsoft.cognitive.speakerrecognition.contract.identification.IdentificationOperation;
 import com.microsoft.cognitive.speakerrecognition.contract.identification.OperationLocation;
 import com.microsoft.cognitive.speakerrecognition.contract.identification.Profile;
+import com.microsoft.cognitive.speakerrecognition.contract.verification.Enrollment;
+import com.microsoft.cognitive.speakerrecognition.contract.verification.Verification;
 
 public class SpeakerApplicationTest
 {
@@ -40,6 +45,9 @@ public class SpeakerApplicationTest
 	private SpeakerIdentificationClient _speakerIdentificationClient;
 	private SpeakerIdentificationServiceImpl _speakerIdentificationService;
 
+	private SpeakerVerificationClient _speakerVerificationClient;
+	private SpeakerVerificationServiceImpl _speakerVerificationService;
+
 	InputStream _enrollmentInputStream1 = null;
 	InputStream _enrollmentInputStream2 = null;
 	InputStream _identificationInputStream = null;
@@ -50,6 +58,11 @@ public class SpeakerApplicationTest
 		_speakerIdentificationClient = new SpeakerIdentificationRestClient(SUBSCRIPTION_KEY);
 		_speakerIdentificationService = new SpeakerIdentificationServiceImpl();
 		_speakerIdentificationService.setSpeakerIdentificationClient(_speakerIdentificationClient);
+
+		_speakerVerificationClient = new SpeakerVerificationRestClient(SUBSCRIPTION_KEY);
+		_speakerVerificationService = new SpeakerVerificationServiceImpl();
+		_speakerVerificationService.setSpeakerVerificationClient(_speakerVerificationClient);
+
 		setupAudioStreams();
 	}
 
@@ -69,6 +82,10 @@ public class SpeakerApplicationTest
 			e.printStackTrace();
 		}
 	}
+
+    //
+    // Test identification client
+    //
 
 	/**
 	 * Test get all speaker profiles
@@ -209,6 +226,9 @@ public class SpeakerApplicationTest
         }
     }
 
+    //
+    // Test identification service
+    //
 
     /**
      * Test speaker identification service for enrollment
@@ -237,6 +257,32 @@ public class SpeakerApplicationTest
 
     	// assert that identification was successful
     	assertEquals(SPEAKER_PROFILE_UUID, identificationOperation.processingResult.identifiedProfileId.toString());
+    }
+
+
+    //
+    // Test verification service
+    //
+
+    @Test
+    public void testSpeakerVerificationServiceEnroll()
+    {
+    	Enrollment enrollment = _speakerVerificationService.enrollPhrase(_enrollmentInputStream1, UUID.fromString(SPEAKER_PROFILE_UUID));
+
+    	System.out.println(enrollment.enrollmentsCount);
+    	System.out.println(enrollment.remainingEnrollments);
+    	System.out.println(enrollment.phrase);
+    	System.out.println(enrollment.enrollmentStatus);
+    }
+
+    @Test
+    public void testSpeakerVerificationServiceIdentify()
+    {
+    	Verification verification = _speakerVerificationService.verifySpeaker(_enrollmentInputStream1);
+
+    	System.out.println(verification.result);
+    	System.out.println(verification.phrase);
+    	System.out.println(verification.confidence);
     }
 
 }
