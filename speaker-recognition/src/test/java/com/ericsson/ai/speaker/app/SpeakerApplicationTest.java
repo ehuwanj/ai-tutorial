@@ -13,8 +13,6 @@ import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.ericsson.ai.speaker.domain.SpeakerProfile;
-import com.ericsson.ai.speaker.service.SpeakerIdentificationService;
 import com.ericsson.ai.speaker.service.impl.SpeakerIdentificationServiceImpl;
 import com.ericsson.ai.speaker.service.impl.SpeakerVerificationServiceImpl;
 import com.microsoft.cognitive.speakerrecognition.SpeakerIdentificationClient;
