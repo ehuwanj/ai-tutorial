@@ -66,9 +66,8 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
-import org.springframework.stereotype.Component;
 
 /**
  * A service client class to perform all the verification service calls
@@ -89,7 +88,7 @@ public class SpeakerVerificationRestClient implements SpeakerVerificationClient 
      * Address of the verification phrases API
      */
     private static final String PHRASES_ENDPOINT = "https://westus.api.cognitive.microsoft.com/spid/v1.0/verificationPhrases?locale=";
-    
+
     /**
      * The locale parameter
      */
@@ -109,7 +108,7 @@ public class SpeakerVerificationRestClient implements SpeakerVerificationClient 
      * Speaker client clientHelper
      */
     private SpeakerRestClientHelper clientHelper;
-    
+
     //----------------------------------------------------------------------------------------------
 
     /**
@@ -118,7 +117,8 @@ public class SpeakerVerificationRestClient implements SpeakerVerificationClient 
      * @param subscriptionKey The subscription key
      */
     public SpeakerVerificationRestClient(String subscriptionKey) {
-        defaultHttpClient = new DefaultHttpClient();
+        //defaultHttpClient = new DefaultHttpClient();
+    	defaultHttpClient = HttpClientBuilder.create().build();
         gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:SS.SSS").create();
         clientHelper = new SpeakerRestClientHelper(subscriptionKey);
     }

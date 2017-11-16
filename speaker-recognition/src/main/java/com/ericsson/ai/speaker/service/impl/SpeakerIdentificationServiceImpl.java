@@ -21,6 +21,7 @@ import com.microsoft.cognitive.speakerrecognition.SpeakerIdentificationClient;
 import com.microsoft.cognitive.speakerrecognition.contract.CreateProfileException;
 import com.microsoft.cognitive.speakerrecognition.contract.DeleteProfileException;
 import com.microsoft.cognitive.speakerrecognition.contract.EnrollmentException;
+import com.microsoft.cognitive.speakerrecognition.contract.EnrollmentStatus;
 import com.microsoft.cognitive.speakerrecognition.contract.GetProfileException;
 import com.microsoft.cognitive.speakerrecognition.contract.ResetEnrollmentsException;
 import com.microsoft.cognitive.speakerrecognition.contract.identification.CreateProfileResponse;
@@ -38,6 +39,16 @@ import com.microsoft.cognitive.speakerrecognition.contract.identification.Operat
 public class SpeakerIdentificationServiceImpl implements SpeakerIdentificationService
 {
     private static Logger _logger = Logger.getLogger(SpeakerIdentificationServiceImpl.class.getName());
+
+    /**
+     * waiting time to let enroll or identify complete before doing the status check
+     */
+    private final static long WAIT_BEFORE_STATUS_CHECK = 3000;
+
+    /**
+     * force short audio
+     */
+    private final static boolean FORCE_SHORT_AUDIO = true;
 
     private SpeakerProfileDao _speakerProfileDao;
     private SpeakerIdentificationClient _speakerIdentificationClient;
@@ -77,7 +88,7 @@ public class SpeakerIdentificationServiceImpl implements SpeakerIdentificationSe
     }
 
     @Override
-    public void deleteSpeakerProfile(String pProfileId) 
+    public void deleteSpeakerProfile(String pProfileId)
     {
         try
         {
@@ -103,7 +114,7 @@ public class SpeakerIdentificationServiceImpl implements SpeakerIdentificationSe
         OperationLocation operationLocation = null;
         try
         {
-            operationLocation = _speakerIdentificationClient.enroll(pAudioStream, pSpeakerId);
+            operationLocation = _speakerIdentificationClient.enroll(pAudioStream, pSpeakerId, FORCE_SHORT_AUDIO);
         }
         catch (EnrollmentException | IOException e)
         {
@@ -113,9 +124,10 @@ public class SpeakerIdentificationServiceImpl implements SpeakerIdentificationSe
         {
             try
             {
+            	Thread.sleep(WAIT_BEFORE_STATUS_CHECK);
                 return _speakerIdentificationClient.checkEnrollmentStatus(operationLocation);
             }
-            catch (EnrollmentException | IOException e)
+            catch (EnrollmentException | IOException | InterruptedException e)
             {
                 e.printStackTrace();
             }
@@ -124,12 +136,12 @@ public class SpeakerIdentificationServiceImpl implements SpeakerIdentificationSe
     }
 
     @Override
-    public void resetEnrollments(UUID pSpeakerProfileId) 
+    public void resetEnrollments(UUID pSpeakerProfileId)
     {
         try
         {
             _speakerIdentificationClient.resetEnrollments(pSpeakerProfileId);
-        } 
+        }
         catch (ResetEnrollmentsException | IOException e)
         {
             e.printStackTrace();
@@ -146,7 +158,7 @@ public class SpeakerIdentificationServiceImpl implements SpeakerIdentificationSe
         OperationLocation operationLocation;
         try
         {
-            operationLocation = _speakerIdentificationClient.identify(pAudioStream, allProfileIds);
+            operationLocation = _speakerIdentificationClient.identify(pAudioStream, allProfileIds, FORCE_SHORT_AUDIO);
         }
         catch (IdentificationException | IOException e)
         {
@@ -157,9 +169,10 @@ public class SpeakerIdentificationServiceImpl implements SpeakerIdentificationSe
         {
             try
             {
+            	Thread.sleep(WAIT_BEFORE_STATUS_CHECK);
                 return _speakerIdentificationClient.checkIdentificationStatus(operationLocation);
             }
-            catch (IdentificationException | IOException e)
+            catch (IdentificationException | IOException | InterruptedException e)
             {
                 e.printStackTrace();
             }
@@ -173,6 +186,7 @@ public class SpeakerIdentificationServiceImpl implements SpeakerIdentificationSe
         {
             return _speakerIdentificationClient.getProfiles()
                                                         .stream()
+                                                        .filter(p -> p.enrollmentStatus == EnrollmentStatus.ENROLLED)
                                                         .map(p -> p.identificationProfileId)
                                                         .collect(Collectors.toList());
         }
