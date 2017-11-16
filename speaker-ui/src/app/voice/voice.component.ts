@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-
+// import * as RecordRTC from '../../assets/scripts/RecordRTC.js';
 
 @Component({
   selector: 'app-voice',
@@ -7,14 +7,13 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./voice.component.css']
 })
 export class VoiceComponent implements OnInit {
-  
+
+  private recordingFlag: boolean;
   private recorder; 
   private microphone;
-  private audio : HTMLAudioElement;
+  private audio;
 
-  private stream: MediaStream;
-  private recordRTC: any;
-  private isEdge = navigator.userAgent.indexOf('Edge') !== -1 && (!!navigator.msSaveOrOpenBlob || !!navigator.msSaveBlob);
+  private isEdge;
 
   constructor() { }
 
@@ -28,11 +27,18 @@ export class VoiceComponent implements OnInit {
       }
     }
     this.audio = document.querySelector('audio');
+    this.isEdge = navigator.userAgent.indexOf('Edge') !== -1 && (!!navigator.msSaveOrOpenBlob || !!navigator.msSaveBlob);
   }
+
+  isRecording(){
+    return this.recordingFlag;
+  }
+
 
   replaceAudio(src: any) {
 
     var newAudio = document.createElement('audio');
+  
     newAudio.controls = true;
 
     if(src) {
@@ -44,7 +50,7 @@ export class VoiceComponent implements OnInit {
     parentNode.appendChild(newAudio);
 
     this.audio = newAudio;
-}
+  }
 
   startRecording(){
     let mediaConstraints = {
@@ -52,15 +58,17 @@ export class VoiceComponent implements OnInit {
     };
     navigator.mediaDevices
       .getUserMedia(mediaConstraints)
-      .then(this.successCallback.bind(this), this.errorCallback.bind(this));
+      .then(this.startRecordingCallback.bind(this), this.errorCallback.bind(this));
   }
 
-  successCallback(stream: MediaStream) {
+  startRecordingCallback(stream: MediaStream) {
 
+    this.recordingFlag = true;
     this.replaceAudio(null);
     
     this.audio.muted = true;
-    this.setSrcObject(microphone, audio);
+
+    //this.setSrcObject(microphone, audio);
     this.audio.play();
     
     var options = {
@@ -70,15 +78,9 @@ export class VoiceComponent implements OnInit {
         bufferSize: 16384
     };
 
-    if(navigator.platform && navigator.platform.toString().toLowerCase().indexOf('win') === -1) {
-        options.sampleRate = 48000; // or 44100 or remove this line for default
-    }
-    
-    var recorder = RecordRTC(microphone, options);
-    
-    recorder.startRecording();
-    
-    document.getElementById('btn-stop-recording').disabled = false;
+     this.recorder = RecordRTC(this.microphone, options);
+      
+    this.recorder.startRecording();
   }
 
   errorCallback() {
@@ -86,7 +88,22 @@ export class VoiceComponent implements OnInit {
   }
 
   stopRecording(){
+    this.recorder.stopRecording(this.stopRecordingCallback);
+  }
 
+  stopRecordingCallback(){
+
+    this.replaceAudio(URL.createObjectURL(this.recorder.getBlob()));
+    this.recorder.destroy();
+    this.recorder = null;
+    this.recordingFlag = false;
+    this.audio.play();
+  }
+
+  releaseMicrophone(){
+
+    this.microphone.stop();
+    this.microphone = null;
   }
 
   download(){
