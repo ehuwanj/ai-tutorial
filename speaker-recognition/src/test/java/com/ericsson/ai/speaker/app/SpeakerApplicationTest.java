@@ -46,9 +46,13 @@ public class SpeakerApplicationTest
 	private SpeakerVerificationClient _speakerVerificationClient;
 	private SpeakerVerificationServiceImpl _speakerVerificationService;
 
-	InputStream _enrollmentInputStream1 = null;
-	InputStream _enrollmentInputStream2 = null;
+	InputStream _identificationEnrollmentStream1 = null;
+	InputStream _identificationEnrollmentStream2 = null;
 	InputStream _identificationInputStream = null;
+
+	InputStream _verificationEnrollmentStream = null;
+	InputStream _verificationInputStream = null;
+
 
 	@Before
 	public void setup()
@@ -71,9 +75,13 @@ public class SpeakerApplicationTest
 	{
 		try
 		{
-			_enrollmentInputStream1 = new FileInputStream("./src/test/resources/EnrollJuergen1.wav");
-			_enrollmentInputStream2 = new FileInputStream("./src/test/resources/EnrollJuergen2.wav");
+			_identificationEnrollmentStream1 = new FileInputStream("./src/test/resources/EnrollJuergen1.wav");
+			_identificationEnrollmentStream2 = new FileInputStream("./src/test/resources/EnrollJuergen2.wav");
 			_identificationInputStream = new FileInputStream("./src/test/resources/IdentifyJuergen1.wav");
+
+			// TODO: create wav files for verification
+			_verificationEnrollmentStream = new FileInputStream("tobecreated.wav");
+			_verificationInputStream =  new FileInputStream("tobecreated.wav");
 		}
 		catch(FileNotFoundException e)
 		{
@@ -152,7 +160,7 @@ public class SpeakerApplicationTest
     @Test
     public void testSpeakerIdentificationClientEnrollLongAudio() throws EnrollmentException, IOException, InterruptedException
     {
-        OperationLocation operationLocation = _speakerIdentificationClient.enroll(_enrollmentInputStream1, UUID.fromString(SPEAKER_PROFILE_UUID));
+        OperationLocation operationLocation = _speakerIdentificationClient.enroll(_identificationEnrollmentStream1, UUID.fromString(SPEAKER_PROFILE_UUID));
         if(operationLocation != null)
         {
         	System.out.println(operationLocation.Url);
@@ -179,7 +187,7 @@ public class SpeakerApplicationTest
     @Test
     public void testSpeakerIdentificationClientEnrollShortAudio() throws EnrollmentException, IOException, InterruptedException
     {
-        OperationLocation operationLocation = _speakerIdentificationClient.enroll(_enrollmentInputStream2, UUID.fromString(SPEAKER_PROFILE_UUID), FORCE_SHORT_AUDIO);
+        OperationLocation operationLocation = _speakerIdentificationClient.enroll(_identificationEnrollmentStream2, UUID.fromString(SPEAKER_PROFILE_UUID), FORCE_SHORT_AUDIO);
         if(operationLocation != null)
         {
         	System.out.println(operationLocation.Url);
@@ -234,7 +242,7 @@ public class SpeakerApplicationTest
     @Test
     public void testSpeakerIdentificationServiceEnroll()
     {
-    	EnrollmentOperation enrollmentOperation = _speakerIdentificationService.enrollSpeaker(_enrollmentInputStream1, UUID.fromString(SPEAKER_PROFILE_UUID));
+    	EnrollmentOperation enrollmentOperation = _speakerIdentificationService.enrollSpeaker(_identificationEnrollmentStream1, UUID.fromString(SPEAKER_PROFILE_UUID));
 
     	System.out.println(enrollmentOperation.processingResult.enrollmentSpeechTime);
     	System.out.println(enrollmentOperation.processingResult.remainingEnrollmentSpeechTime);
@@ -265,7 +273,7 @@ public class SpeakerApplicationTest
     @Test
     public void testSpeakerVerificationServiceEnroll()
     {
-    	Enrollment enrollment = _speakerVerificationService.enrollPhrase(_enrollmentInputStream1, UUID.fromString(SPEAKER_PROFILE_UUID));
+    	Enrollment enrollment = _speakerVerificationService.enrollPhrase(_verificationEnrollmentStream, UUID.fromString(SPEAKER_PROFILE_UUID));
 
     	System.out.println(enrollment.enrollmentsCount);
     	System.out.println(enrollment.remainingEnrollments);
@@ -276,7 +284,7 @@ public class SpeakerApplicationTest
     @Test
     public void testSpeakerVerificationServiceIdentify()
     {
-    	Verification verification = _speakerVerificationService.verifySpeaker(_enrollmentInputStream1);
+    	Verification verification = _speakerVerificationService.verifySpeaker(_verificationInputStream);
 
     	System.out.println(verification.result);
     	System.out.println(verification.phrase);
