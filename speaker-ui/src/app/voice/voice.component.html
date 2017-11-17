@@ -1,8 +1,15 @@
 
-<div class="row">
+<div style="text-align:center">
     <button [disabled]="isRecording()" mat-raised-button color="primary" (click)="startRecording()"> Record </button>
     <button [disabled]="!isRecording()" mat-raised-button color="primary"(click) ="stopRecording()"> Stop</button>
     <button [disabled]="!checkable()" mat-raised-button color="primary" (click)="authenticate()"> Authenciate</button>
 
 </div>
+
+<div style="text-align:center">
+    <h3>
+        The authenticated user is {{username}}
+    </h3>
+  </div>
+
 <hr>
