@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.SerializationUtils;
@@ -19,12 +20,15 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ericsson.ai.speaker.domain.RequestProfile;
 import com.ericsson.ai.speaker.domain.SpeakerProfile;
 import com.ericsson.ai.speaker.service.SpeakerIdentificationService;
+import com.ericsson.ai.speaker.service.impl.SpeakerIdentificationServiceImpl;
 import com.microsoft.cognitive.speakerrecognition.contract.identification.EnrollmentOperation;
 import com.microsoft.cognitive.speakerrecognition.contract.identification.IdentificationOperation;
 
 @RestController
 public class SpeakerIdentificationRestControlller
 {
+    private static Logger _logger = Logger.getLogger(SpeakerIdentificationRestControlller.class.getName());
+
     @Autowired
     private SpeakerIdentificationService _identificationService;
 
@@ -61,8 +65,10 @@ public class SpeakerIdentificationRestControlller
     }
 
     @PutMapping("/identify")
-    public IdentificationOperation verify(@RequestBody byte[] pAudioFile)
+    public IdentificationOperation verify(@RequestBody IdentifyBody pBody)
     {
+        _logger.info(pBody.toString());
+
     	return _identificationService.identifySpeaker(getDefaultIdentificationAudioStream());
 
 //        return _identificationService.identifySpeaker(pAudioFile == null ? getDefaultIdentificationAudioStream() : getAudioStreamFromFile(pAudioFile.toString()));

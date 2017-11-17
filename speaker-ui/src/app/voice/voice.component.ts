@@ -12,6 +12,9 @@ export class VoiceComponent implements AfterViewInit{
   private recording: boolean;
   private stream: MediaStream;
   private recorder; 
+  private voiceBlob; 
+
+  username: String;
   
   constructor(private restService: RestService) {
     if(typeof navigator.mediaDevices === 'undefined' || !navigator.mediaDevices.getUserMedia) {
@@ -43,8 +46,9 @@ export class VoiceComponent implements AfterViewInit{
     this.recording = true;
     var options = {
       mimeType: 'audio/wav',
-      audioBitsPerSecond: 128000,
-      bitsPerSecond: 128000 // if this line is provided, skip above two
+      encoding: 'pcm',
+      audioBitsPerSecond: 16000,
+      bitsPerSecond: 16000 // if this line is provided, skip above two
     };
     this.stream = stream;
     this.recorder = RecordRTC(stream, options);
@@ -57,16 +61,16 @@ export class VoiceComponent implements AfterViewInit{
 
   stopRecording() {
     let recordRTC = this.recorder;
-    recordRTC.stopRecording(this.processVideo.bind(this));
+    recordRTC.stopRecording(this.processAudio.bind(this));
     let stream = this.stream;
     stream.getAudioTracks().forEach(track => track.stop());
     this.recording = false;
   }
 
 
-  processVideo(audioWebMURL) {
+  processAudio(audioWebMURL) {
     let recordRTC = this.recorder;
-    var recordedBlob = recordRTC.getBlob();
+    this.voiceBlob = recordRTC.getBlob();
     recordRTC.getDataURL(function (dataURL) { });
   }
 
@@ -80,9 +84,18 @@ export class VoiceComponent implements AfterViewInit{
   }
 
   authenticate() {
-    this.recorder.save('audio.wav');
-    this.releaseMicrophone();
+    //this.recorder.save('audio.wav');
 
-    this.restService.post("");
+    var profileId;
+    var body= {'fileName': 'audio.wave'};
+    this.restService.put("identify", body).subscribe();
+    //   data => profileId = data["processingResult"]["identifiedProfileId"]
+    // );
+
+    this.restService.get("speaker/" + profileId).subscribe(
+      data => this.username = data["speakerName"]
+    );
+    this.releaseMicrophone();
   }
+
 }
