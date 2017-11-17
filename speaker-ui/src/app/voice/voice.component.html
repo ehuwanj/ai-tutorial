@@ -2,15 +2,7 @@
 <div class="row">
     <button [disabled]="isRecording()" mat-raised-button color="primary" (click)="startRecording()"> Record </button>
     <button [disabled]="!isRecording()" mat-raised-button color="primary"(click) ="stopRecording()"> Stop</button>
-    <button [disabled]="!isRecording()" mat-raised-button color="primary" (click)="download()"> Download</button>
-    
-    <script src="https://cdn.webrtc-experiment.com/RecordRTC.js"></script>
-    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
-
-    <!-- <button id="btn-start-recording">Start Recording</button>
-    <button id="btn-stop-recording" disabled>Stop Recording</button>
-    <button id="btn-release-microphone" disabled>Release Microphone</button> -->
+    <button [disabled]="!checkable()" mat-raised-button color="primary" (click)="authenticate()"> Authenciate</button>
 
 </div>
 <hr>
-<!-- <div><audio controls autoplay></audio></div>  -->

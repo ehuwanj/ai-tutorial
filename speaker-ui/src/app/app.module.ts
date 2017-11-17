@@ -1,12 +1,12 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-
+import { RestService } from './services/rest/rest.service'
 
 import { AppComponent } from './app.component';
 import { AppRouting } from './app.routing';
 import { VoiceComponent } from './voice/voice.component';
 import { EnrollComponent } from './enroll/enroll.component';
-import { AboutComponent } from './about/about.component';
+import { VideoComponent } from './video/video.component';
 
 
 @NgModule({
@@ -14,13 +14,13 @@ import { AboutComponent } from './about/about.component';
     AppComponent,
     VoiceComponent,
     EnrollComponent,
-    AboutComponent
+    VideoComponent
   ],
   imports: [
     BrowserModule,
     AppRouting
   ],
-  providers: [],
+  providers: [RestService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -1,56 +1,33 @@
-import { Component, OnInit } from '@angular/core';
-// import * as RecordRTC from '../../assets/scripts/RecordRTC.js';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { RestService } from '../services/rest/rest.service'
+import * as RecordRTC from 'recordrtc'
 
 @Component({
   selector: 'app-voice',
   templateUrl: './voice.component.html',
   styleUrls: ['./voice.component.css']
 })
-export class VoiceComponent implements OnInit {
+export class VoiceComponent implements AfterViewInit{
 
-  private recordingFlag: boolean;
+  private recording: boolean;
+  private stream: MediaStream;
   private recorder; 
-  private microphone;
-  private audio;
-
-  private isEdge;
-
-  constructor() { }
-
-  ngOnInit() {
-
+  
+  constructor(private restService: RestService) {
     if(typeof navigator.mediaDevices === 'undefined' || !navigator.mediaDevices.getUserMedia) {
       alert('This browser does not supports WebRTC getUserMedia API.');
-
-      if(!!navigator.getUserMedia) {
-          alert('This browser seems supporting deprecated getUserMedia API.');
-      }
     }
-    this.audio = document.querySelector('audio');
-    this.isEdge = navigator.userAgent.indexOf('Edge') !== -1 && (!!navigator.msSaveOrOpenBlob || !!navigator.msSaveBlob);
+  }
+
+  ngAfterViewInit() {
+    this.recording = false;
+    this.stream = null;
   }
 
   isRecording(){
-    return this.recordingFlag;
+    return this.recording;
   }
 
-
-  replaceAudio(src: any) {
-
-    var newAudio = document.createElement('audio');
-  
-    newAudio.controls = true;
-
-    if(src) {
-        newAudio.src = src;
-    }
-    
-    var parentNode = this.audio.parentNode;
-    parentNode.textContent = '';
-    parentNode.appendChild(newAudio);
-
-    this.audio = newAudio;
-  }
 
   startRecording(){
     let mediaConstraints = {
@@ -58,28 +35,19 @@ export class VoiceComponent implements OnInit {
     };
     navigator.mediaDevices
       .getUserMedia(mediaConstraints)
-      .then(this.startRecordingCallback.bind(this), this.errorCallback.bind(this));
+      .then(this.successCallback.bind(this), this.errorCallback.bind(this));
   }
 
-  startRecordingCallback(stream: MediaStream) {
 
-    this.recordingFlag = true;
-    this.replaceAudio(null);
-    
-    this.audio.muted = true;
-
-    //this.setSrcObject(microphone, audio);
-    this.audio.play();
-    
+  successCallback(stream: MediaStream) {
+    this.recording = true;
     var options = {
-        type: 'audio',
-        numberOfAudioChannels: this.isEdge ? 1 : 2,
-        checkForInactiveTracks: true,
-        bufferSize: 16384
+      mimeType: 'audio/wav',
+      audioBitsPerSecond: 128000,
+      bitsPerSecond: 128000 // if this line is provided, skip above two
     };
-
-     this.recorder = RecordRTC(this.microphone, options);
-      
+    this.stream = stream;
+    this.recorder = RecordRTC(stream, options);
     this.recorder.startRecording();
   }
 
@@ -87,26 +55,34 @@ export class VoiceComponent implements OnInit {
     //handle error here
   }
 
-  stopRecording(){
-    this.recorder.stopRecording(this.stopRecordingCallback);
+  stopRecording() {
+    let recordRTC = this.recorder;
+    recordRTC.stopRecording(this.processVideo.bind(this));
+    let stream = this.stream;
+    stream.getAudioTracks().forEach(track => track.stop());
+    this.recording = false;
   }
 
-  stopRecordingCallback(){
 
-    this.replaceAudio(URL.createObjectURL(this.recorder.getBlob()));
-    this.recorder.destroy();
-    this.recorder = null;
-    this.recordingFlag = false;
-    this.audio.play();
+  processVideo(audioWebMURL) {
+    let recordRTC = this.recorder;
+    var recordedBlob = recordRTC.getBlob();
+    recordRTC.getDataURL(function (dataURL) { });
   }
 
   releaseMicrophone(){
-
-    this.microphone.stop();
-    this.microphone = null;
+    this.stream.stop();
+    this.stream = null;
   }
 
-  download(){
+  checkable(){
+    return !this.isRecording() && this.stream != null; 
+  }
 
+  authenticate() {
+    this.recorder.save('audio.wav');
+    this.releaseMicrophone();
+
+    this.restService.post("");
   }
 }
