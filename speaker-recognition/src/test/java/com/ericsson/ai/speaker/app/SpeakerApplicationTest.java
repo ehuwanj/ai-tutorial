@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -30,14 +31,15 @@ import com.microsoft.cognitive.speakerrecognition.contract.identification.Identi
 import com.microsoft.cognitive.speakerrecognition.contract.identification.OperationLocation;
 import com.microsoft.cognitive.speakerrecognition.contract.identification.Profile;
 import com.microsoft.cognitive.speakerrecognition.contract.verification.Enrollment;
+import com.microsoft.cognitive.speakerrecognition.contract.verification.PhrasesException;
 import com.microsoft.cognitive.speakerrecognition.contract.verification.Verification;
+import com.microsoft.cognitive.speakerrecognition.contract.verification.VerificationPhrase;
 
 public class SpeakerApplicationTest
 {
 	private static final String SUBSCRIPTION_KEY = "b32caa3d5f2046558b255a5c04bf198f";
 	private static final String SPEAKER_IDENTIFICATION_PROFILE_UUID = "5ef9d03c-04ea-46ba-afff-ed98187ff775";
-//	private static final String SPEAKER_VERIFICATION_PROFILE_UUID = SPEAKER_IDENTIFICATION_PROFILE_UUID; // verification requires its own profileID
-	private static final String SPEAKER_VERIFICATION_PROFILE_UUID = "";
+	private static final String SPEAKER_VERIFICATION_PROFILE_UUID = "f99bf3eb-7781-4bf3-8e3d-a253949bc217";
 	private static final String LOCALE_EN_US = "en-us";
 	private static final long WAIT_BEFORE_STATUS_CHECK = 3000;
     private static final boolean FORCE_SHORT_AUDIO = true;
@@ -52,10 +54,7 @@ public class SpeakerApplicationTest
 	InputStream _identificationEnrollmentStream2 = null;
 	InputStream _identificationInputStream = null;
 
-	InputStream _verificationPhrase1 = null;
-	InputStream _verificationPhrase2 = null;
-	InputStream _verificationPhrase3 = null;
-//	InputStream _verificationInputStream = null;
+	InputStream _verificationPhrase = null;
 
 
 	@Before
@@ -68,6 +67,7 @@ public class SpeakerApplicationTest
 		_speakerVerificationClient = new SpeakerVerificationRestClient(SUBSCRIPTION_KEY);
 		_speakerVerificationService = new SpeakerVerificationServiceImpl();
 		_speakerVerificationService.setSpeakerVerificationClient(_speakerVerificationClient);
+		_speakerVerificationService.setSpeakerIdentificationService(_speakerIdentificationService);
 
 		setupAudioStreams();
 	}
@@ -83,10 +83,7 @@ public class SpeakerApplicationTest
 			_identificationEnrollmentStream2 = new FileInputStream("./src/test/resources/EnrollJuergen2.wav");
 			_identificationInputStream = new FileInputStream("./src/test/resources/IdentifyJuergen1.wav");
 
-			// TODO: create wav files for verification
-			_verificationPhrase1 = new FileInputStream("./src/test/resources/VerificationPhrase1.wav");
-			_verificationPhrase2 = new FileInputStream("./src/test/resources/VerificationPhrase2.wav");
-			_verificationPhrase3 = new FileInputStream("./src/test/resources/VerificationPhrase3.wav");
+			_verificationPhrase = new FileInputStream("./src/test/resources/VerificationPhrase1.wav");
 		}
 		catch(FileNotFoundException e)
 		{
@@ -237,6 +234,34 @@ public class SpeakerApplicationTest
         }
     }
 
+    /**
+     * Test speaker identification with another audio (here: a verification phrase)
+     *
+     * @throws IdentificationException
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    @Test
+    public void testSpeakerIdentificationClientIdentifyWithVerificationPhrase() throws IdentificationException, IOException, InterruptedException
+    {
+    	List<UUID> allProfileIds = Arrays.asList(UUID.fromString(SPEAKER_IDENTIFICATION_PROFILE_UUID));
+    	OperationLocation operationLocation = _speakerIdentificationClient.identify(_verificationPhrase, allProfileIds, FORCE_SHORT_AUDIO);
+
+        if(operationLocation != null)
+        {
+        	System.out.println(operationLocation.Url);
+
+        	Thread.sleep(WAIT_BEFORE_STATUS_CHECK);
+        	IdentificationOperation identificationOperation = _speakerIdentificationClient.checkIdentificationStatus(operationLocation);
+
+        	System.out.println(identificationOperation.processingResult.identifiedProfileId.toString());
+        	System.out.println(identificationOperation.processingResult.confidence);
+
+        	// assert that identification was successful
+        	assertEquals(SPEAKER_IDENTIFICATION_PROFILE_UUID, identificationOperation.processingResult.identifiedProfileId.toString());
+        }
+    }
+
     //
     // Test identification service
     //
@@ -248,6 +273,8 @@ public class SpeakerApplicationTest
     public void testSpeakerIdentificationServiceEnroll()
     {
     	EnrollmentOperation enrollmentOperation = _speakerIdentificationService.enrollSpeaker(_identificationEnrollmentStream1, UUID.fromString(SPEAKER_IDENTIFICATION_PROFILE_UUID));
+
+    	assertNotNull(enrollmentOperation);
 
     	System.out.println(enrollmentOperation.processingResult.enrollmentSpeechTime);
     	System.out.println(enrollmentOperation.processingResult.remainingEnrollmentSpeechTime);
@@ -262,6 +289,8 @@ public class SpeakerApplicationTest
     public void testSpeakerIdentificationServiceIdentify()
     {
     	IdentificationOperation identificationOperation = _speakerIdentificationService.identifySpeaker(_identificationInputStream);
+
+    	assertNotNull(identificationOperation);
 
     	System.out.println(identificationOperation.processingResult.identifiedProfileId.toString());
     	System.out.println(identificationOperation.processingResult.confidence);
@@ -289,31 +318,35 @@ public class SpeakerApplicationTest
 		System.out.println(speakerProfileUUID);
     }
 
+    /**
+     * Get the list of (currently supported) verification phrases
+     *
+     * @throws URISyntaxException
+     * @throws IOException
+     * @throws PhrasesException
+     */
+    @Test
+    public void testSpeakerVerificationClientGetAllSupportedVerificationPhrases() throws PhrasesException, IOException, URISyntaxException
+    {
+    	List<VerificationPhrase> verificationPhrases = _speakerVerificationClient.getPhrases(LOCALE_EN_US);
+    	verificationPhrases.forEach(v -> System.out.println(v.phrase));
+    }
+
+
     //
     // Test verification service
     //
 
     /**
-     *
+     * Test enrollment of a verification phrase (must be one from the list of supported phrases)
+     * Must be repeated three times to complete enrollment
      */
     @Test
-    public void testSpeakerVerificationServiceEnroll()
+    public void testSpeakerVerificationServiceEnrollPhrase()
     {
-    	Enrollment enrollment = _speakerVerificationService.enrollPhrase(_verificationPhrase1, UUID.fromString(SPEAKER_VERIFICATION_PROFILE_UUID));
+    	Enrollment enrollment = _speakerVerificationService.enrollPhrase(_verificationPhrase, UUID.fromString(SPEAKER_VERIFICATION_PROFILE_UUID));
 
-    	System.out.println(enrollment.enrollmentsCount);
-    	System.out.println(enrollment.remainingEnrollments);
-    	System.out.println(enrollment.phrase);
-    	System.out.println(enrollment.enrollmentStatus);
-
-    	enrollment = _speakerVerificationService.enrollPhrase(_verificationPhrase2, UUID.fromString(SPEAKER_VERIFICATION_PROFILE_UUID));
-
-    	System.out.println(enrollment.enrollmentsCount);
-    	System.out.println(enrollment.remainingEnrollments);
-    	System.out.println(enrollment.phrase);
-    	System.out.println(enrollment.enrollmentStatus);
-
-    	enrollment = _speakerVerificationService.enrollPhrase(_verificationPhrase3, UUID.fromString(SPEAKER_VERIFICATION_PROFILE_UUID));
+    	assertNotNull(enrollment);
 
     	System.out.println(enrollment.enrollmentsCount);
     	System.out.println(enrollment.remainingEnrollments);
@@ -321,10 +354,20 @@ public class SpeakerApplicationTest
     	System.out.println(enrollment.enrollmentStatus);
     }
 
+
+    /**
+     * Test verification of a speaker using the verification phrase
+     *
+     * Currently fails:
+     *   Identification is successful, but verification requires the verification profile ID
+     *   instead of the identification profile ID
+     */
     @Test
-    public void testSpeakerVerificationServiceIdentify()
+    public void testSpeakerVerificationServiceVerifySpeaker()
     {
-    	Verification verification = _speakerVerificationService.verifySpeaker(_verificationPhrase2);
+    	Verification verification = _speakerVerificationService.verifySpeaker(_verificationPhrase);
+
+    	assertNotNull(verification);
 
     	System.out.println(verification.result);
     	System.out.println(verification.phrase);

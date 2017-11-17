@@ -137,6 +137,8 @@ public class SpeakerVerificationServiceImpl implements SpeakerVerificationServic
         {
             try
             {
+            	// TODO:
+            	// here we need to get the verification profile ID instead of the identification profile ID
                 return _speakerVerificationClient.verify(pAudioStream, operation.processingResult.identifiedProfileId);
             }
             catch (VerificationException | IOException e)
