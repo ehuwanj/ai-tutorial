@@ -1,50 +1,33 @@
-import { Component, OnInit } from '@angular/core';
-
+import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { RestService } from '../services/rest/rest.service'
+import * as RecordRTC from 'recordrtc'
 
 @Component({
   selector: 'app-voice',
   templateUrl: './voice.component.html',
   styleUrls: ['./voice.component.css']
 })
-export class VoiceComponent implements OnInit {
-  
-  private recorder; 
-  private microphone;
-  private audio : HTMLAudioElement;
+export class VoiceComponent implements AfterViewInit{
 
+  private recording: boolean;
   private stream: MediaStream;
-  private recordRTC: any;
-  private isEdge = navigator.userAgent.indexOf('Edge') !== -1 && (!!navigator.msSaveOrOpenBlob || !!navigator.msSaveBlob);
-
-  constructor() { }
-
-  ngOnInit() {
-
+  private recorder; 
+  
+  constructor(private restService: RestService) {
     if(typeof navigator.mediaDevices === 'undefined' || !navigator.mediaDevices.getUserMedia) {
       alert('This browser does not supports WebRTC getUserMedia API.');
-
-      if(!!navigator.getUserMedia) {
-          alert('This browser seems supporting deprecated getUserMedia API.');
-      }
     }
-    this.audio = document.querySelector('audio');
   }
 
-  replaceAudio(src: any) {
+  ngAfterViewInit() {
+    this.recording = false;
+    this.stream = null;
+  }
 
-    var newAudio = document.createElement('audio');
-    newAudio.controls = true;
+  isRecording(){
+    return this.recording;
+  }
 
-    if(src) {
-        newAudio.src = src;
-    }
-    
-    var parentNode = this.audio.parentNode;
-    parentNode.textContent = '';
-    parentNode.appendChild(newAudio);
-
-    this.audio = newAudio;
-}
 
   startRecording(){
     let mediaConstraints = {
@@ -55,41 +38,51 @@ export class VoiceComponent implements OnInit {
       .then(this.successCallback.bind(this), this.errorCallback.bind(this));
   }
 
+
   successCallback(stream: MediaStream) {
-
-    this.replaceAudio(null);
-    
-    this.audio.muted = true;
-    this.setSrcObject(microphone, audio);
-    this.audio.play();
-    
+    this.recording = true;
     var options = {
-        type: 'audio',
-        numberOfAudioChannels: this.isEdge ? 1 : 2,
-        checkForInactiveTracks: true,
-        bufferSize: 16384
+      mimeType: 'audio/wav',
+      audioBitsPerSecond: 128000,
+      bitsPerSecond: 128000 // if this line is provided, skip above two
     };
-
-    if(navigator.platform && navigator.platform.toString().toLowerCase().indexOf('win') === -1) {
-        options.sampleRate = 48000; // or 44100 or remove this line for default
-    }
-    
-    var recorder = RecordRTC(microphone, options);
-    
-    recorder.startRecording();
-    
-    document.getElementById('btn-stop-recording').disabled = false;
+    this.stream = stream;
+    this.recorder = RecordRTC(stream, options);
+    this.recorder.startRecording();
   }
 
   errorCallback() {
     //handle error here
   }
 
-  stopRecording(){
-
+  stopRecording() {
+    let recordRTC = this.recorder;
+    recordRTC.stopRecording(this.processVideo.bind(this));
+    let stream = this.stream;
+    stream.getAudioTracks().forEach(track => track.stop());
+    this.recording = false;
   }
 
-  download(){
 
+  processVideo(audioWebMURL) {
+    let recordRTC = this.recorder;
+    var recordedBlob = recordRTC.getBlob();
+    recordRTC.getDataURL(function (dataURL) { });
+  }
+
+  releaseMicrophone(){
+    this.stream.stop();
+    this.stream = null;
+  }
+
+  checkable(){
+    return !this.isRecording() && this.stream != null; 
+  }
+
+  authenticate() {
+    this.recorder.save('audio.wav');
+    this.releaseMicrophone();
+
+    this.restService.post("");
   }
 }

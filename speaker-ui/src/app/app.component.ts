@@ -6,7 +6,7 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'Voice Based Login to BSCS Web application';
+  title = 'Voice Based Authentication in Mobile & Web application';
 
   context = new AudioContext();
 }
