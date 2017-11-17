@@ -3,7 +3,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context = "http://www.springframework.org/schema/context"
        xmlns:jdbc = "http://www.springframework.org/schema/jdbc"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
                            http://www.springframework.org/schema/beans/spring-beans.xsd
                            http://www.springframework.org/schema/context
                            http://www.springframework.org/schema/context/spring-context.xsd
@@ -21,11 +21,11 @@
     </bean>
 
     <bean id="SpeakerIdentificationClient" class="com.microsoft.cognitive.speakerrecognition.SpeakerIdentificationRestClient">
-        <constructor-arg value = "SubscriptionKey"/>
+        <constructor-arg value = "b32caa3d5f2046558b255a5c04bf198f"/>
     </bean>
 
     <bean id="SpeakerVerificationClient" class="com.microsoft.cognitive.speakerrecognition.SpeakerVerificationRestClient">
-        <constructor-arg value = "SubscriptionKey"/>
+        <constructor-arg value = "b32caa3d5f2046558b255a5c04bf198f"/>
     </bean>
 
 </beans>
